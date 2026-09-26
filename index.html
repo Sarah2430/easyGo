@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>easyGo - Recipes of the World</title>
+<style>
+/* Global Styles */
+* {
+box-sizing: border-box;
+margin: 0;
+padding: 0;
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+background-color: #FFF8F0;
+color: #333;
+padding: 20px;
+}
+
+/* RTL Support for Arabic */
+body.rtl {
+direction: rtl;
+}
+
+/* Header & Navigation Bar */
+header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+max-width: 1200px;
+margin: 0 auto 30px auto;
+padding-bottom: 15px;
+border-bottom: 2px solid #E6D7C3;
+}
+
+.logo {
+font-size: 2rem;
+font-weight: bold;
+color: #8B4513;
+}
+
+.lang-container label {
+font-weight: 600;
+margin-right: 8px;
+color: #555;
+}
+
+body.rtl .lang-container label {
+margin-right: 0;
+margin-left: 8px;
+}
+
+.lang-container select {
+padding: 8px 12px;
+border-radius: 6px;
+border: 1px solid #CCC;
+background-color: #FFF;
+font-size: 1rem;
+cursor: pointer;
+outline: none;
+}
+
+/* Cuisine Grid System (4 columns) */
+.cuisine-grid {
+display: grid;
+grid-template-columns: repeat(4, 1fr);
+gap: 20px;
+max-width: 1200px;
+margin: 0 auto;
+align-items: start;
+}
+
+/* Cuisine Rectangle Cards */
+.cuisine-card {
+background-color: #FFFFFF;
+border: 1px solid #E0D0C0;
+border-radius: 10px;
+padding: 20px;
+box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+transition: transform 0.2s ease, box-shadow 0.2s ease;
+cursor: pointer;
+user-select: none;
+}
+
+.cuisine-card:hover {
+transform: translateY(-3px);
+box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.cuisine-title {
+font-size: 1.1rem;
+font-weight: 700;
+color: #4A2E10;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+.cuisine-title::after {
+content: '▼';
+font-size: 0.8rem;
+color: #8B4513;
+transition: transform 0.3s ease;
+}
+
+.cuisine-card.active .cuisine-title::after {
+transform: rotate(180deg);
+}
+
+/* Country Dropdown List */
+.country-dropdown {
+max-height: 0;
+overflow: hidden;
+transition: max-height 0.4s ease, margin-top 0.3s ease;
+display: flex;
+flex-direction: column;
+gap: 8px;
+}
+
+.cuisine-card.active .country-dropdown {
+max-height: 800px;
+margin-top: 15px;
+padding-top: 10px;
+border-top: 1px solid #F0E0D0;
+}
+
+.country-item {
+padding: 8px 12px;
+border-radius: 6px;
+background-color: #FFFDF9;
+border: 1px solid #F3EAE0;
+font-size: 0.95rem;
+font-weight: 500;
+color: #333;
+display: flex;
+align-items: center;
+gap: 12px;
+transition: background-color 0.2s ease;
+}
+
+.country-item:hover {
+background-color: #F8ECE0;
+color: #8B4513;
+}
+
+.flag-img {
+width: 24px;
+height: 18px;
+object-fit: cover;
+border-radius: 2px;
+box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 1024px) {
+.cuisine-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 768px) {
+.cuisine-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+.cuisine-grid { grid-template-columns: 1fr; }
+header { flex-direction: column; gap: 15px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Top Navigation Header -->
+<header>
+<div class="logo">easyGo</div>
+<div class="lang-container">
+<label for="languageSelect" id="langLabel">Language:</label>
+<select id="languageSelect">
+<option value="en">1- English</option>
+<option value="es">2- Español</option>
+<option value="ar">3- العربية</option>
+<option value="fr">4- Français</option>
+<option value="zh">5- 中文</option>
+<option value="hi">6- हिन्दी</option>
+<option value="ru">7- Русский</option>
+<option value="pt">8- Português</option>
+</select>
+</div>
+</header>
+
+<!-- Main Cuisine Grid Container -->
+<main class="cuisine-grid" id="cuisineGrid"></main>
+
+<script>
+// Translations Data for all 8 Languages
+const translations = {
+en: {
+label: "Language:",
+cuisines: [
+"1- Middle Eastern Cuisine", "2- North African Cuisine", "3- South Asian Cuisine",
+"4- East Asian Cuisine", "5- Southeast Asian Cuisine", "6- Central Asian Cuisine",
+"7- Western European Cuisine", "8- Southern European Cuisine", "9- Northern European Cuisine",
+"10- Central European Cuisine", "11- Balkan Cuisine", "12- Eastern European Cuisine",
+"13- West African Cuisine", "14- Central African Cuisine", "15- East African Cuisine",
+"16- Southern African Cuisine", "17- Indian Ocean Cuisine", "18- North American Cuisine",
+"19- Central American Cuisine", "20- Caribbean Cuisine", "21- South American Cuisine",
+"22- Oceanian Cuisine"
+]
+},
+es: {
+label: "Idioma:",
+cuisines: [
+"1- Cocina de Oriente Medio", "2- Cocina del Norte de África", "3- Cocina del Sur de Asia",
+"4- Cocina del Este de Asia", "5- Cocina del Sudeste Asiático", "6- Cocina de Asia Central",
+"7- Cocina de Europa Occidental", "8- Cocina del Sur de Europa", "9- Cocina del Norte de Europa",
+"10- Cocina de Europa Central", "11- Cocina de los Balcanes", "12- Cocina de Europa del Este",
+"13- Cocina de África Occidental", "14- Cocina de África Central", "15- Cocina de África Oriental",
+"16- Cocina del Sur de África", "17- Cocina del Océano Índico", "18- Cocina de Norteamérica",
+"19- Cocina de Centroamérica", "20- Cocina del Caribe", "21- Cocina de Sudamérica",
+"22- Cocina de Oceanía"
+]
+},
+ar: {
+label: "اللغة:",
+cuisines: [
+"1- المطبخ الشرق أوسطي", "2- مطبخ شمال إفريقيا", "3- مطبخ جنوب آسيا",
+"4- مطبخ شرق آسيا", "5- مطبخ جنوب شرق آسيا", "6- مطبخ وسط آسيا",
+"7- مطبخ غرب أوروبا", "8- مطبخ جنوب أوروبا", "9- مطبخ شمال أوروبا",
+"10- مطبخ وسط أوروبا", "11- مطبخ البلقان", "12- مطبخ شرق أوروبا",
+"13- مطبخ غرب إفريقيا", "14- مطبخ وسط إفريقيا", "15- مطبخ شرق إفريقيا",
+"16- مطبخ جنوب إفريقيا", "17- مطبخ المحيط الهندي", "18- مطبخ أمريكا الشمالية",
+"19- مطبخ أمريكا الوسطى", "20- المطبخ الكاريبي", "21- مطبخ أمريكا الجنوبية",
+"22- مطبخ أوقيانوسيا"
+]
+},
+fr: {
+label: "Langue:",
+cuisines: [
+"1- Cuisine du Moyen-Orient", "2- Cuisine d'Afrique du Nord", "3- Cuisine d'Asie du Sud",
+"4- Cuisine d'Asie de l'Est", "5- Cuisine d'Asie du Sud-Est", "6- Cuisine d'Asie Centrale",
+"7- Cuisine d'Europe de l'Ouest", "8- Cuisine d'Europe du Sud", "9- Cuisine d'Europe du Nord",
+"10- Cuisine d'Europe Centrale", "11- Cuisine des Balkans", "12- Cuisine d'Europe de l'Est",
+"13- Cuisine d'Afrique de l'Ouest", "14- Cuisine d'Afrique Centrale", "15- Cuisine d'Afrique de l'Est",
+"16- Cuisine d'Afrique Australe", "17- Cuisine de l'Océan Indien", "18- Cuisine d'Amérique du Nord",
+"19- Cuisine d'Amérique Centrale", "20- Cuisine des Caraïbes", "21- Cuisine d'Amérique du Sud",
+"22- Cuisine d'Océanie"
+]
+},
+zh: {
+label: "语言:",
+cuisines: [
+"1- 中东美食", "2- 北非美食", "3- 南亚美食",
+"4- 东亚美食", "5- 东南亚美食", "6- 中亚美食",
+"7- 西欧美食", "8- 南欧美食", "9- 北欧美食",
+"10- 中欧美食", "11- 巴尔干美食", "12- 东欧美食",
+"13- 西非美食", "14- 中非美食", "15- 东非美食",
+"16- 南非美食", "17- 印度洋美食", "18- 北美美食",
+"19- 中美洲美食", "20- 加勒比美食", "21- 南美美食",
+"22- 大洋洲美食"
+]
+},
+hi: {
+label: "भाषा:",
+cuisines: [
+"1- मध्य पूर्वी व्यंजन", "2- उत्तर अफ्रीकी व्यंजन", "3- दक्षिण एशियाई व्यंजन",
+"4- पूर्वी एशियाई व्यंजन", "5- दक्षिण पूर्व एशियाई व्यंजन", "6- मध्य एशियाई व्यंजन",
+"7- पश्चिमी यूरोपीय व्यंजन", "8- दक्षिणी यूरोपीय व्यंजन", "9- उत्तरी यूरोपीय व्यंजन",
+"10- मध्य यूरोपीय व्यंजन", "11- बाल्कन व्यंजन", "12- पूर्वी यूरोपीय व्यंजन",
+"13- पश्चिम अफ्रीकी व्यंजन", "14- मध्य अफ्रीकी व्यंजन", "15- पूर्वी अफ्रीकी व्यंजन",
+"16- दक्षिणी अफ्रीकी व्यंजन", "17- हिंद महासागर व्यंजन", "18- उत्तरी अमेरिकी व्यंजन",
+"19- मध्य अमेरिकी व्यंजन", "20- कैरिबियाई व्यंजन", "21- दक्षिण अमेरिकी व्यंजन",
+"22- ओशिनियाई व्यंजन"
+]
+},
+ru: {
+label: "Язык:",
+cuisines: [
+"1- Ближневосточная кухня", "2- Североафриканская кухня", "3- Южноазиатская кухня",
+"4- Восточноазиатская кухня", "5- Юго-Восточноазиатская кухня", "6- Центральноазиатская кухня",
+"7- Западноевропейская кухня", "8- Южноевропейская кухня", "9- Североевропейская кухня",
+"10- Центральноевропейская кухня", "11- Балканская кухня", "12- Восточноевропейская кухня",
+"13- Западноафриканская кухня", "14- Центральноафриканская кухня", "15- Восточноафриканская кухня",
+"16- Южноафриканская кухня", "17- Кухня Индийского океана", "18- Североамериканская кухня",
+"19- Центральноамериканская кухня", "20- Карибская кухня", "21- Южноамериканская кухня",
+"22- Кухня Океании"
+]
+},
+pt: {
+label: "Idioma:",
+cuisines: [
+"1- Culinária do Oriente Médio", "2- Culinária do Norte da África", "3- Culinária do Sul da Ásia",
+"4- Culinária do Leste da Ásia", "5- Culinária do Sudeste Asiático", "6- Culinária da Ásia Central",
+"7- Culinária da Europa Ocidental", "8- Culinária do Sul da Europa", "9- Culinária do Norte da Europa",
+"10- Culinária da Europa Central", "11- Culinária dos Bálcãs", "12- Culinária da Europa Oriental",
+"13- Culinária da África Ocidental", "14- Culinária da África Central", "15- Culinária da África Oriental",
+"16- Culinária do Sul da África", "17- Culinária do Oceano Índico", "18- Culinária da América do Norte",
+"19- Culinária da América Central", "20- Culinária do Caribe", "21- Culinária da América do Sul",
+"22- Culinária da Oceania"
+]
+}
+};
+
+// Regional Base Structure (Countries & Codes)
+const cuisineData = [
+{ id: 1, countries: [{ code: "lb", name: "Lebanon" }, { code: "sy", name: "Syria" }, { code: "ps", name: "Palestine" }, { code: "jo", name: "Jordan" }, { code: "iq", name: "Iraq" }, { code: "sa", name: "Saudi Arabia" }, { code: "ae", name: "United Arab Emirates" }, { code: "qa", name: "Qatar" }, { code: "kw", name: "Kuwait" }, { code: "bh", name: "Bahrain" }, { code: "om", name: "Oman" }, { code: "ye", name: "Yemen" }, { code: "ir", name: "Iran" }, { code: "tr", name: "Turkey" }, { code: "am", name: "Armenia" }, { code: "ge", name: "Georgia" }, { code: "az", name: "Azerbaijan" }] },
+{ id: 2, countries: [{ code: "ma", name: "Morocco" }, { code: "dz", name: "Algeria" }, { code: "tn", name: "Tunisia" }, { code: "ly", name: "Libya" }, { code: "eg", name: "Egypt" }, { code: "sd", name: "Sudan" }, { code: "mr", name: "Mauritania" }] },
+{ id: 3, countries: [{ code: "in", name: "India" }, { code: "pk", name: "Pakistan" }, { code: "bd", name: "Bangladesh" }, { code: "lk", name: "Sri Lanka" }, { code: "np", name: "Nepal" }, { code: "bt", name: "Bhutan" }, { code: "mv", name: "Maldives" }, { code: "af", name: "Afghanistan" }] },
+{ id: 4, countries: [{ code: "cn", name: "China" }, { code: "jp", name: "Japan" }, { code: "kr", name: "South Korea" }, { code: "kp", name: "North Korea" }, { code: "tw", name: "Taiwan" }, { code: "mn", name: "Mongolia" }] },
+{ id: 5, countries: [{ code: "th", name: "Thailand" }, { code: "vn", name: "Vietnam" }, { code: "ph", name: "Philippines" }, { code: "id", name: "Indonesia" }, { code: "my", name: "Malaysia" }, { code: "sg", name: "Singapore" }, { code: "kh", name: "Cambodia" }, { code: "la", name: "Laos" }, { code: "mm", name: "Myanmar" }, { code: "bn", name: "Brunei" }, { code: "tl", name: "Timor-Leste" }] },
+{ id: 6, countries: [{ code: "kz", name: "Kazakhstan" }, { code: "uz", name: "Uzbekistan" }, { code: "kg", name: "Kyrgyzstan" }, { code: "tj", name: "Tajikistan" }, { code: "tm", name: "Turkmenistan" }] },
+{ id: 7, countries: [{ code: "fr", name: "France" }, { code: "be", name: "Belgium" }, { code: "nl", name: "Netherlands" }, { code: "lu", name: "Luxembourg" }, { code: "gb", name: "United Kingdom" }, { code: "ie", name: "Ireland" }] },
+{ id: 8, countries: [{ code: "it", name: "Italy" }, { code: "es", name: "Spain" }, { code: "pt", name: "Portugal" }, { code: "gr", name: "Greece" }, { code: "mt", name: "Malta" }, { code: "cy", name: "Cyprus" }] },
+{ id: 9, countries: [{ code: "dk", name: "Denmark" }, { code: "se", name: "Sweden" }, { code: "no", name: "Norway" }, { code: "fi", name: "Finland" }, { code: "is", name: "Iceland" }, { code: "ee", name: "Estonia" }, { code: "lv", name: "Latvia" }, { code: "lt", name: "Lithuania" }] },
+{ id: 10, countries: [{ code: "de", name: "Germany" }, { code: "at", name: "Austria" }, { code: "ch", name: "Switzerland" }, { code: "pl", name: "Poland" }, { code: "cz", name: "Czech Republic" }, { code: "sk", name: "Slovakia" }, { code: "hu", name: "Hungary" }, { code: "si", name: "Slovenia" }] },
+{ id: 11, countries: [{ code: "hr", name: "Croatia" }, { code: "rs", name: "Serbia" }, { code: "ba", name: "Bosnia and Herzegovina" }, { code: "me", name: "Montenegro" }, { code: "al", name: "Albania" }, { code: "xk", name: "Kosovo" }, { code: "mk", name: "North Macedonia" }, { code: "bg", name: "Bulgaria" }, { code: "ro", name: "Romania" }, { code: "gr", name: "Greece" }] },
+{ id: 12, countries: [{ code: "ua", name: "Ukraine" }, { code: "ru", name: "Russia" }, { code: "by", name: "Belarus" }, { code: "md", name: "Moldova" }] },
+{ id: 13, countries: [{ code: "ng", name: "Nigeria" }, { code: "gh", name: "Ghana" }, { code: "sn", name: "Senegal" }, { code: "gm", name: "Gambia" }, { code: "gn", name: "Guinea" }, { code: "sl", name: "Sierra Leone" }, { code: "lr", name: "Liberia" }, { code: "ci", name: "Côte d’Ivoire" }, { code: "tg", name: "Togo" }, { code: "bj", name: "Benin" }, { code: "bf", name: "Burkina Faso" }, { code: "ml", name: "Mali" }, { code: "cv", name: "Cabo Verde" }, { code: "gw", name: "Guinea-Bissau" }] },
+{ id: 14, countries: [{ code: "cm", name: "Cameroon" }, { code: "cd", name: "Democratic Republic of the Congo" }, { code: "cg", name: "Republic of the Congo" }, { code: "ga", name: "Gabon" }, { code: "cf", name: "Central African Republic" }, { code: "td", name: "Chad" }, { code: "gq", name: "Equatorial Guinea" }, { code: "st", name: "São Tomé and Príncipe" }] },
+{ id: 15, countries: [{ code: "et", name: "Ethiopia" }, { code: "er", name: "Eritrea" }, { code: "so", name: "Somalia" }, { code: "ke", name: "Kenya" }, { code: "ug", name: "Uganda" }, { code: "tz", name: "Tanzania" }, { code: "rw", name: "Rwanda" }, { code: "bi", name: "Burundi" }, { code: "dj", name: "Djibouti" }, { code: "ss", name: "South Sudan" }] },
+{ id: 16, countries: [{ code: "za", name: "South Africa" }, { code: "zw", name: "Zimbabwe" }, { code: "zm", name: "Zambia" }, { code: "mw", name: "Malawi" }, { code: "mz", name: "Mozambique" }, { code: "na", name: "Namibia" }, { code: "bw", name: "Botswana" }, { code: "ls", name: "Lesotho" }, { code: "sz", name: "Eswatini" }, { code: "ao", name: "Angola" }] },
+{ id: 17, countries: [{ code: "mg", name: "Madagascar" }, { code: "mu", name: "Mauritius" }, { code: "sc", name: "Seychelles" }, { code: "km", name: "Comoros" }] },
+{ id: 18, countries: [{ code: "us", name: "United States" }, { code: "ca", name: "Canada" }, { code: "mx", name: "Mexico" }] },
+{ id: 19, countries: [{ code: "gt", name: "Guatemala" }, { code: "bz", name: "Belize" }, { code: "hn", name: "Honduras" }, { code: "sv", name: "El Salvador" }, { code: "ni", name: "Nicaragua" }, { code: "cr", name: "Costa Rica" }, { code: "pa", name: "Panama" }] },
+{ id: 20, countries: [{ code: "cu", name: "Cuba" }, { code: "do", name: "Dominican Republic" }, { code: "pr", name: "Puerto Rico" }, { code: "jm", name: "Jamaica" }, { code: "ht", name: "Haiti" }, { code: "tt", name: "Trinidad and Tobago" }, { code: "bb", name: "Barbados" }, { code: "bs", name: "Bahamas" }, { code: "gd", name: "Grenada" }, { code: "lc", name: "Saint Lucia" }, { code: "vc", name: "Saint Vincent and the Grenadines" }, { code: "ag", name: "Antigua and Barbuda" }, { code: "dm", name: "Dominica" }] },
+{ id: 21, countries: [{ code: "br", name: "Brazil" }, { code: "ar", name: "Argentina" }, { code: "pe", name: "Peru" }, { code: "co", name: "Colombia" }, { code: "ve", name: "Venezuela" }, { code: "cl", name: "Chile" }, { code: "bo", name: "Bolivia" }, { code: "ec", name: "Ecuador" }, { code: "py", name: "Paraguay" }, { code: "uy", name: "Uruguay" }, { code: "gy", name: "Guyana" }, { code: "sr", name: "Suriname" }] },
+{ id: 22, countries: [{ code: "au", name: "Australia" }, { code: "nz", name: "New Zealand" }, { code: "fj", name: "Fiji" }, { code: "ws", name: "Samoa" }, { code: "to", name: "Tonga" }, { code: "vu", name: "Vanuatu" }, { code: "sb", name: "Solomon Islands" }, { code: "pg", name: "Papua New Guinea" }, { code: "pw", name: "Palau" }, { code: "fm", name: "Micronesia" }, { code: "mh", name: "Marshall Islands" }, { code: "ki", name: "Kiribati" }, { code: "tv", name: "Tuvalu" }] }
+];
+
+let currentLang = "en";
+
+function renderApp() {
+const grid = document.getElementById("cuisineGrid");
+const langLabel = document.getElementById("langLabel");
+
+// Update Language Label Text
+langLabel.textContent = translations[currentLang].label;
+
+// Handle Right-to-Left for Arabic
+if (currentLang === 'ar') {
+document.body.classList.add('rtl');
+} else {
+document.body.classList.remove('rtl');
+}
+
+grid.innerHTML = "";
+
+cuisineData.forEach((cuisine, index) => {
+const card = document.createElement("div");
+card.className = "cuisine-card";
+
+const title = document.createElement("div");
+title.className = "cuisine-title";
+
+// Dynamically grab translated title
+title.textContent = translations[currentLang].cuisines[index];
+card.appendChild(title);
+
+const dropdown = document.createElement("div");
+dropdown.className = "country-dropdown";
+
+cuisine.countries.forEach(country => {
+const item = document.createElement("div");
+item.className = "country-item";
+
+const flagUrl = `https://flagcdn.com/w40/${country.code}.png`;
+item.innerHTML = `<img src="${flagUrl}" class="flag-img" alt="${country.name} flag"> <span>${country.name}</span>`;
+
+item.addEventListener("click", (e) => {
+e.stopPropagation();
+selectCountry(country.name);
+});
+
+dropdown.appendChild(item);
+});
+
+card.appendChild(dropdown);
+
+card.addEventListener("click", () => {
+document.querySelectorAll(".cuisine-card").forEach(c => {
+if (c !== card) c.classList.remove("active");
+});
+card.classList.toggle("active");
+});
+
+grid.appendChild(card);
+});
+}
+
+// Event Listener for Language Selector Dropdown
+document.getElementById("languageSelect").addEventListener("change", (e) => {
+currentLang = e.target.value;
+renderApp();
+});
+
+function selectCountry(countryName) {
+console.log(`Country Selected: ${countryName}`);
+}
+
+// Initial App Render
+renderApp();
+</script>
+</body>
+</html>
+
